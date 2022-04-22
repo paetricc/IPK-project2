@@ -8,7 +8,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h>
+#include <string.h>
 #include <pcap.h>
+
+#define BETWEEN(first, number, last)  (((first) <= (number)) && ((number) <= (last)))
 
 static struct option long_options[] = {
         {"interface", optional_argument, 0, 'i' },
@@ -28,10 +31,14 @@ static struct Options {
     char  icmp;
     char  arp;
     int   num;
-} def_option = {NULL, 0, 0, 0, 0, 0, 0};
+} def_option = {NULL, 0, 0, 0, 0, 0, 1};
 
 typedef struct Options option;
 
-void parse_args(int ,char **, struct Options*);
+void parse_args(int ,char **, struct Options *);
+
+void interface();
+
+char* make_filter(struct Options *, char *);
 
 #endif //IPK_PROJECT2_PACKETSNIFFER_H
