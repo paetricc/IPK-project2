@@ -1,7 +1,3 @@
-//
-// Created by bartu on 21.04.22.
-//
-
 #ifndef IPK_PROJECT2_PACKETSNIFFER_H
 #define IPK_PROJECT2_PACKETSNIFFER_H
 
@@ -9,9 +5,21 @@
 #include <stdlib.h>
 #include <getopt.h>
 #include <string.h>
+#include <ctype.h>
 #include <pcap.h>
+#include <netinet/ether.h>
+#include <arpa/inet.h>
+#include <time.h>
+#include <netinet/ip.h>
+#include <netinet/tcp.h>
+#include <netinet/udp.h>
+#include <netinet/if_ether.h>
 
 #define BETWEEN(first, number, last)  (((first) <= (number)) && ((number) <= (last)))
+
+#define IP_PROTOCOL_ICMP 0x01
+#define IP_PROTOCOL_TCP  0x06
+#define IP_PROTOCOL_UDP  0x11
 
 static struct option long_options[] = {
         {"interface", optional_argument, 0, 'i' },
