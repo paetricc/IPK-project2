@@ -221,13 +221,27 @@ void p_length(const struct pcap_pkthdr *h) {
 }
 
 /**
- * Funkce pro výpis cílové a zdrojové IP adresy
- * @param ip_header Hlavička paketu
+ * Funkce pro výpis cílové a zdrojové IP adresy (IPv4)
+ * @param ip_header Hlavička IPv4 paketu
  */
 void p_ip(const struct ip *ip_header) {
     /* pomocí inet_ntoa() vypíšeme adresy ze síťového prostředí (uložená v bajtech) na dekadickou tečkovou notaci */
     printf("src IP: %s\n", inet_ntoa(ip_header->ip_src));
     printf("dest IP: %s\n", inet_ntoa(ip_header->ip_dst));
+}
+
+/**
+ * Funkce pro výpis cílové a zdrojové IP adresy (IPv6)
+ * @param ip6_header Hlavička IPv6 paketu
+ */
+void p_ip6(const struct ip6_hdr *ip6_header) {
+    char buff[INET6_ADDRSTRLEN];
+
+    inet_ntop(AF_INET6, &(ip6_header->ip6_src), buff, INET6_ADDRSTRLEN);
+    printf("src IP: %s\n", buff);
+
+    inet_ntop(AF_INET6, &(ip6_header->ip6_dst), buff, INET6_ADDRSTRLEN);
+    printf("dst IP: %s\n", buff);
 }
 
 /**
@@ -309,7 +323,7 @@ void handler(u_char *user, const struct pcap_pkthdr *h, const u_char *bytes) {
     }
 
     /* pokud je protokol, kterým jsou data v datové částí rámce zapouzdřena IP */
-    if (ntohs(eth_header->ether_type) == ETHERTYPE_IP) {
+    if (ntohs(eth_header->ether_type) == ETHERTYPE_IP) { /* IPv4 */
         /* tak zjistíme jeho hlavičku (posuneme ukazatel o 14 bajtů, kde 14 udáva velikost ethernetové hlaičky) */
         struct ip *ip_header = (struct ip *) (bytes + ETHER_HEADER_SIZE);
 
@@ -322,17 +336,36 @@ void handler(u_char *user, const struct pcap_pkthdr *h, const u_char *bytes) {
 
         /* pokud je protokol, kterým jsou data v datové částí rámce zapouzdřena TCP */
         if (ip_header->ip_p == IP_PROTOCOL_TCP) {
-            /* tak zjistíme jeho hlavičku (posuneme ukazatel o 14 bajtů + délku IP hlavičky,
-             * kde 14 udáva velikost ethernetové hlaičky) */
+            /* tak zjistíme jeho hlavičku (posuneme ukazatel o délku ethernetové hlacičky + délku IPv4 hlavičky */
             struct tcphdr *tcp_header = (struct tcphdr *) (bytes + ip_len + ETHER_HEADER_SIZE);
             p_port_tcp(tcp_header);
         }
 
         /* pokud je protokol, kterým jsou data v datové částí rámce zapouzdřena UDP */
         if (ip_header->ip_p == IP_PROTOCOL_UDP) {
-            /* tak zjistíme jeho hlavičku (posuneme ukazatel o 14 bajtů + délku IP hlavičky,
-             * kde 14 udáva velikost ethernetové hlaičky) */
+            /* tak zjistíme jeho hlavičku (posuneme ukazatel o délku ethernetové hlacičky + délku IPv4 hlavičky */
             struct udphdr *udp_header = (struct udphdr *) (bytes + ip_len + ETHER_HEADER_SIZE);
+            p_port_udp(udp_header);
+        }
+    }
+
+    if (ntohs(eth_header->ether_type) == ETHERTYPE_IPV6) {
+        /* tak zjistíme jeho hlavičku (posuneme ukazatel o 14 bajtů, kde 14 udáva velikost ethernetové hlaičky) */
+        struct ip6_hdr *ip6_header = (struct ip6_hdr *) (bytes + ETHER_HEADER_SIZE);
+
+        p_ip6(ip6_header);
+
+        /* pokud je protokol, kterým jsou data v datové částí rámce zapouzdřena TCP */
+        if (ip6_header->ip6_ctlun.ip6_un1.ip6_un1_nxt == IP_PROTOCOL_TCP) {
+            /* tak zjistíme jeho hlavičku (posuneme ukazatel o délku ethernetové hlacičky + délku IPv6 hlavičky */
+            struct tcphdr *tcp_header = (struct tcphdr *) (bytes + IPV6_HEADER_SIZE + ETHER_HEADER_SIZE);
+            p_port_tcp(tcp_header);
+        }
+
+        /* pokud je protokol, kterým jsou data v datové částí rámce zapouzdřena UDP */
+        if (ip6_header->ip6_ctlun.ip6_un1.ip6_un1_nxt == IP_PROTOCOL_UDP) {
+            /* tak zjistíme jeho hlavičku (posuneme ukazatel o délku ethernetové hlacičky + délku IPv6 hlavičky */
+            struct udphdr *udp_header = (struct udphdr *) (bytes + IPV6_HEADER_SIZE + ETHER_HEADER_SIZE);
             p_port_udp(udp_header);
         }
     }
@@ -377,9 +410,10 @@ void p_payload(const u_char *bytes, int caplen) {
                 printf("   ");
             }
             end[count] = '\0';
-            printf("      %s", end);
+            printf("     %s\n", end);
             break;
         }
+        byte++;  /* posuneme se o jeden znak */
         /* pokud skončil řádek výpisu, ale pořád jsou data k načtení, tak vypíšeme znakový payload */
         if (i % PAYLOAD_ROW_SIZE == 0) {
             space = 1;
@@ -392,10 +426,9 @@ void p_payload(const u_char *bytes, int caplen) {
             continue;
         }
         printf(" "); /* mezera mezi bajty */
-        if (space % (PAYLOAD_ROW_SIZE >> 2) == 0) {
+        if (space % (PAYLOAD_ROW_SIZE / 2) == 0) {
             printf(" "); /* pokud jsme na osmém bajtu, vypíšeme mezeru navíc */
         }
-        byte++;  /* posuneme se o jeden znak */
         space++; /* do pole budeme zapisovat o jednu pozici výše */
     }
 }

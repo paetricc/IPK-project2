@@ -11,6 +11,7 @@
 #include <arpa/inet.h>
 #include <time.h>
 #include <netinet/ip.h>
+#include <netinet/ip6.h>
 #include <netinet/tcp.h>
 #include <netinet/udp.h>
 #include <netinet/if_ether.h>
@@ -24,6 +25,7 @@
 #define IP_PROTOCOL_UDP  0x11 /* UDP */
 
 #define ETHER_HEADER_SIZE 14  /* velikost ethernetové hlavičky */
+#define IPV6_HEADER_SIZE  40  /* velikost IPv6 hlavičky */
 
 #define PAYLOAD_ROW_SIZE 16   /* velikost řádku payloadu */
 #define BUFSIZE 128           /* velikost bufferů */
@@ -70,6 +72,8 @@ void p_port_udp(const struct udphdr *);
 void p_port_tcp(const struct tcphdr *);
 
 void p_ip(const struct ip *);
+
+void p_ip6(const struct ip6_hdr *);
 
 void p_length(const struct pcap_pkthdr *);
 
