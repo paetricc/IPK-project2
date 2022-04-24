@@ -551,7 +551,7 @@ void parse_args(int argc, char **argv, struct Options *option) {
                     exit(EXIT_FAILURE);
                 }
                 if ((int) number < 1)
-                    exit(EXIT_FAILURE)
+                    exit(EXIT_FAILURE);
                 option->num = (int) number;
                 break;
             default:
