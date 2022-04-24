@@ -39,7 +39,8 @@ static struct option long_options[] = {
         {"udp", no_argument, 0, 'u' },
         {"icmp", no_argument, 0, 'I' },
         {"arp", no_argument, 0, 'a' },
-        {"number", required_argument, 0, 'n' }
+        {"number", required_argument, 0, 'n' },
+        {0, 0, 0, 0}
 };
 
 /* struktura uchovávající výběr z argumentů programu (defaultně vše až na num je nastaveno na 0) */

@@ -107,16 +107,6 @@
 
 #include "packetsniffer.h"
 
-void debug(struct Options option) {
-    printf("Interface is %s\n", option.interface);
-    printf("Port is %d\n", option.port);
-    printf("Tcp is %d\n", option.tcp);
-    printf("Udp is %d\n", option.udp);
-    printf("Icmp is %d\n", option.icmp);
-    printf("Arp is %d\n", option.arp);
-    printf("Number is %d\n", option.num);
-}
-
 int main(int argc, char **argv) {
     struct Options option = def_option; /* struktura v níž jsou prozatím uloženy defaultní data */
     struct bpf_program filter;          /* pro uložení filtru a následnou aplikaci na pcap_setfilter */
@@ -131,7 +121,6 @@ int main(int argc, char **argv) {
     if (option.interface == NULL) {     /* pokud nebyl zadán žádný interface */
         interface();
     }
-    //debug(option);
 
     make_filter(&option, filter_exp); /* řetězcový zápis filtru ze zadaných argumentů */
 
